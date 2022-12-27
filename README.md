@@ -28,7 +28,7 @@ Usage:
 
 Most functionality is similar or identical to aconnect.
 
-If a port name is unique (i.e. not "Port 1" but the actual name of the device), it can be connected using a shortcut naming convention  ":\<PORTNAME\>" instead of typing the full client:port names. This is amenable to creating shell completion scripts. (example forthcoming)
+If a port name is unique (i.e. not "Port 1" but the actual name of the device), it can be connected using a shortcut naming convention  ":PORTNAME" instead of typing the full client:port names. This is amenable to creating shell completion scripts. (example forthcoming)
 
 neoaconnect can save the state of all current connections using TOML. This must currently be piped to a file manually but can then be restored by passing the saved file as a parameter to the -S option.
 
