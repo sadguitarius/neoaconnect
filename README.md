@@ -4,27 +4,29 @@ based on aconnect by Takashi Iwai
 
 TODO: fix license
 
+```
 Usage:
  * Connection/disconnection between two ports
    neoaconnect [-options] sender receiver
      sender, receiver = client:port pair
-     -d,--disconnect     disconnect
-     -e,--exclusive      exclusive connection
-     -r,--real #         convert real-time-stamp on queue
-     -t,--tick #         convert tick-time-stamp on queue
+     -d,--disconnect\t     disconnect
+     -e,--exclusive\t      exclusive connection
+     -r,--real #\t         convert real-time-stamp on queue
+     -t,--tick #\t         convert tick-time-stamp on queue
  * List connected ports (no subscription action)
    neoaconnect -i|-o [-options]
-     -i,--input          list input (readable ports)
-     -o,--output         list output (writable ports)
-     -l,--list           list current connections of each port
-     -p,--ports          list only port names 
+     -i,--input\t          list input (readable ports)
+     -o,--output\t         list output (writable ports)
+     -l,--list\t           list current connections of each port
+     -p,--ports\t          list only port names 
                          (for shell completion scripts)
  * Remove all exported connections
      -x,--removeall
  * Serialization of connections in TOML format
     -s,--serialize      read current connections to terminal
     -S FILENAME,
---deserialize    repopulate connections from TOML file;
+--deserialize    repopulate connections from TOML file
+```
 
 Most functionality is similar or identical to aconnect.
 
