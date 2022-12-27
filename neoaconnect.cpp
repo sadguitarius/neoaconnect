@@ -637,7 +637,7 @@ class Seq {
 static void usage(void) {
     std::cout
         << "neoaconnect - ALSA sequencer connection manager\n"
-           "Copyright (C 2022 Ben Goldwasser\n"
+           "Copyright (C) 2022 Ben Goldwasser\n"
            "based on aconnect by Takashi Iwai\n"
            "Usage:\n"
            " * Connection/disconnection between two ports\n"
