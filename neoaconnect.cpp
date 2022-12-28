@@ -20,12 +20,12 @@
 #include <string>
 #include <charconv>
 #include <getopt.h>
-// #include <functional>
 #include <fmt/core.h>
 #include <alsa/asoundlib.h>
 #include <toml++/toml.h>
-// #include <iterator>
 #include <regex>
+#include <chrono>
+#include <thread>
 
 struct Connection {
     int client_id_;
@@ -36,10 +36,11 @@ struct Connection {
 
 class Port {
    public:
-    Port(snd_seq_t *seq, int client_id, int index, std::string name,
-         unsigned int capability)
+    Port(snd_seq_t *seq, int client_id, std::string client_name, int index,
+         std::string name, unsigned int capability)
         : seq_(seq),
           client_id_(client_id),
+          client_name_(client_name),
           index_(index),
           name_(name),
           capability_(capability) {
@@ -47,6 +48,8 @@ class Port {
     }
 
     const int get_client_id() { return client_id_; }
+
+    const std::string get_client_name() { return client_name_; }
 
     const int get_index() { return index_; }
 
@@ -59,6 +62,7 @@ class Port {
    private:
     snd_seq_t *seq_;
     int client_id_;
+    std::string client_name_;
     int index_;
     std::string name_;
     unsigned int capability_;
@@ -127,7 +131,7 @@ class Client {
             std::string name = snd_seq_port_info_get_name(pinfo);
             unsigned int capability = snd_seq_port_info_get_capability(pinfo);
             ports_.push_back(
-                new Port(seq_, client_id, index, name, capability));
+                new Port(seq_, client_id, name_, index, name, capability));
         }
     };
 };
@@ -197,12 +201,22 @@ class Seq {
                       << "]\n";
 
             for (auto port : *client->get_ports()) {
-                // list_subs ? print_port_and_subs(port) : print_port(port);
                 print_port(port);
                 for (auto conn : port->get_connections()) {
                     std::cout << "    -> " << conn.client_id_ << ":"
                               << conn.port_id_ << " (" << conn.client_name_
                               << ":" << conn.port_name_ << ")\n";
+                }
+                for (auto testport : *client->get_ports()) {
+                    for (auto testconn : testport->get_connections()) {
+                        if (testconn.client_id_ == port->get_client_id() &&
+                            testconn.port_id_ == port->get_index()) {
+                            std::cout << "    <- " << testport->get_client_id()
+                                      << ":" << testport->get_index() << " ("
+                                      << testport->get_client_name() << ":"
+                                      << testport->get_name() << ")\n";
+                        }
+                    }
                 }
             }
         }
@@ -347,6 +361,8 @@ class Seq {
     }
 
     void deserialize_connections(char *filename, bool remove_prev = true) {
+        using namespace std::chrono_literals;
+
         toml::table tbl;
         try {
             tbl = toml::parse_file(filename);
@@ -366,6 +382,7 @@ class Seq {
                 auto send_addr = fmt::format("{}:{}", client_name, port_name);
                 connections->for_each([&](toml::value<std::string> &elem) {
                     subscribe(send_addr.c_str(), elem->c_str());
+                    std::this_thread::sleep_for(0.5s);
                 });
             }
         };
@@ -614,12 +631,12 @@ class Seq {
         }
 
         if (parse_address(&sender, send_address) < 0) {
-            std::cerr << "invalid sender address \n";
+            std::cerr << "invalid sender address '" << send_address << "'\n";
             return 1;
         }
 
         if (parse_address(&dest, dest_address) < 0) {
-            std::cerr << "invalid destination address \n";
+            std::cerr << "invalid destination address '" << dest_address << "'\n";
             return 1;
         }
 
