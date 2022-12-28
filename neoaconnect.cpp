@@ -676,7 +676,7 @@ static void usage(void) {
            " * Serialization of connections in TOML format\n"
            "    -s,--serialize      read current connections to terminal\n"
            "    -S FILENAME,\n"
-           "--deserialize    repopulate connections from TOML file\n";
+           "      --deserialize    repopulate connections from TOML file\n";
 }
 
 /*

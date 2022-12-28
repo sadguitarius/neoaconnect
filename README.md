@@ -25,7 +25,7 @@ Usage:
  * Serialization of connections in TOML format
     -s,--serialize      read current connections to terminal
     -S FILENAME,
---deserialize    repopulate connections from TOML file
+      --deserialize    repopulate connections from TOML file
 ```
 
 Most functionality is similar or identical to aconnect.
