@@ -382,7 +382,7 @@ class Seq {
                 auto send_addr = fmt::format("{}:{}", client_name, port_name);
                 connections->for_each([&](toml::value<std::string> &elem) {
                     subscribe(send_addr.c_str(), elem->c_str());
-                    std::this_thread::sleep_for(0.5s);
+                    // std::this_thread::sleep_for(0.5s);
                 });
             }
         };
