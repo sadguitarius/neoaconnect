@@ -382,7 +382,23 @@ class Seq {
                 auto send_addr = fmt::format("{}:{}", client_name, port_name);
                 connections->for_each([&](toml::value<std::string> &elem) {
                     subscribe(send_addr.c_str(), elem->c_str());
+
+                    // allow alsa seq to catch up in between subscriptions
                     // std::this_thread::sleep_for(0.5s);
+                    snd_seq_port_subscribe_t *subs;
+                    snd_seq_port_subscribe_alloca(&subs);
+                    auto connected = false;
+                    while (connected == false) {
+                        if (init_subscription(subs, send_addr.c_str(),
+                                              elem->c_str()) != 0) {
+                            std::cerr << "init subscription failed during "
+                                         "deserialize connection check\n";
+                        }
+
+                        if (snd_seq_get_port_subscription(seq, subs) == 0) {
+                            connected = true;
+                        }
+                    }
                 });
             }
         };
@@ -636,7 +652,8 @@ class Seq {
         }
 
         if (parse_address(&dest, dest_address) < 0) {
-            std::cerr << "invalid destination address '" << dest_address << "'\n";
+            std::cerr << "invalid destination address '" << dest_address
+                      << "'\n";
             return 1;
         }
 
