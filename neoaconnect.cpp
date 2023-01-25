@@ -112,6 +112,8 @@ class Client {
 
     const std::vector<Port *> *get_ports() { return &ports_; };
 
+    const int get_num_ports() { return ports_.size(); };
+
    private:
     snd_seq_t *seq_;
     int index_;
@@ -194,27 +196,30 @@ class Seq {
     void print_list(int list_perm, bool list_subs) {
         // TODO: reintroduce card info
         for (auto client : *get_clients()) {
-            std::cout << "client " << client->get_index() << ": '"
-                      << client->get_name() << "' [type="
-                      << (client->get_type() == SND_SEQ_USER_CLIENT ? "user"
-                                                                    : "kernel")
-                      << "]\n";
+            // don't print empty clients
+            if (client->get_num_ports() > 0) {
+                std::cout << "client " << client->get_index() << ": '"
+                          << client->get_name() << "' [type="
+                          << (client->get_type() == SND_SEQ_USER_CLIENT ? "user"
+                                                                        : "kernel")
+                          << "]\n";
 
-            for (auto port : *client->get_ports()) {
-                print_port(port);
-                for (auto conn : port->get_connections()) {
-                    std::cout << "    -> " << conn.client_id_ << ":"
-                              << conn.port_id_ << " (" << conn.client_name_
-                              << ":" << conn.port_name_ << ")\n";
-                }
-                for (auto testport : *client->get_ports()) {
-                    for (auto testconn : testport->get_connections()) {
-                        if (testconn.client_id_ == port->get_client_id() &&
-                            testconn.port_id_ == port->get_index()) {
-                            std::cout << "    <- " << testport->get_client_id()
-                                      << ":" << testport->get_index() << " ("
-                                      << testport->get_client_name() << ":"
-                                      << testport->get_name() << ")\n";
+                for (auto port : *client->get_ports()) {
+                    print_port(port);
+                    for (auto conn : port->get_connections()) {
+                        std::cout << "    -> " << conn.client_id_ << ":"
+                                  << conn.port_id_ << " (" << conn.client_name_
+                                  << ":" << conn.port_name_ << ")\n";
+                    }
+                    for (auto testport : *client->get_ports()) {
+                        for (auto testconn : testport->get_connections()) {
+                            if (testconn.client_id_ == port->get_client_id() &&
+                                testconn.port_id_ == port->get_index()) {
+                                std::cout << "    <- " << testport->get_client_id()
+                                          << ":" << testport->get_index() << " ("
+                                          << testport->get_client_name() << ":"
+                                          << testport->get_name() << ")\n";
+                            }
                         }
                     }
                 }
