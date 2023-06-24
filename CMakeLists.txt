@@ -1,5 +1,5 @@
-project(neoaconnect)
 cmake_minimum_required(VERSION 3.2)
+project(neoaconnect)
 add_definitions("-std=gnu++17 -Wall")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_BUILD_TYPE Debug)

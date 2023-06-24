@@ -38,3 +38,10 @@ neoaconnect can save the state of all current connections using TOML. This must 
 TODO: needs proper install procedure
 
 For now, use cmake and copy the built binary to the preferred location.
+
+## shell completion
+
+For fish shell, use
+```
+complete -c neoaconnect -a "$(neoaconnect -p)" -f
+```
