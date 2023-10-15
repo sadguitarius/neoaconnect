@@ -200,8 +200,9 @@ class Seq {
             if (client->get_num_ports() > 0) {
                 std::cout << "client " << client->get_index() << ": '"
                           << client->get_name() << "' [type="
-                          << (client->get_type() == SND_SEQ_USER_CLIENT ? "user"
-                                                                        : "kernel")
+                          << (client->get_type() == SND_SEQ_USER_CLIENT
+                                  ? "user"
+                                  : "kernel")
                           << "]\n";
 
                 for (auto port : *client->get_ports()) {
@@ -215,8 +216,9 @@ class Seq {
                         for (auto testconn : testport->get_connections()) {
                             if (testconn.client_id_ == port->get_client_id() &&
                                 testconn.port_id_ == port->get_index()) {
-                                std::cout << "    <- " << testport->get_client_id()
-                                          << ":" << testport->get_index() << " ("
+                                std::cout << "    <- "
+                                          << testport->get_client_id() << ":"
+                                          << testport->get_index() << " ("
                                           << testport->get_client_name() << ":"
                                           << testport->get_name() << ")\n";
                             }
