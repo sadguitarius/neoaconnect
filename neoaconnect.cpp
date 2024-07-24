@@ -340,7 +340,8 @@ public:
         auto connections = port->get_connections();
         toml::array conn_arr;
         for (auto conn : connections) {
-          if (conn.port_name_.compare("Network Export")) {
+          if (conn.port_name_.compare("Network Export") &&
+              conn.port_name_.compare("Announcements")) {
             conn_arr.push_back(
                 fmt::format("{}:{}", conn.client_name_, conn.port_name_));
           }
