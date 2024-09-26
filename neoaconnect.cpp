@@ -225,7 +225,8 @@ public:
   void print_all_ports(int list_perm, bool list_subs) {
     for (auto client : *get_clients()) {
       for (auto port : *client->get_ports()) {
-        std::cout << ":'" << port->get_name() << "'\n";
+        // std::cout << ":'" << port->get_name() << "'\n";
+        std::cout << client->get_name() << ":" << port->get_name() << "\n";
       }
     }
   }
