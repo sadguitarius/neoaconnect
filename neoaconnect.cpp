@@ -18,7 +18,7 @@
 #include <alsa/asoundlib.h>
 #include <charconv>
 #include <chrono>
-#include <fmt/core.h>
+#include <format>
 #include <getopt.h>
 #include <iostream>
 #include <regex>
@@ -344,7 +344,7 @@ public:
           if (conn.port_name_.compare("Network Export") &&
               conn.port_name_.compare("Announcements")) {
             conn_arr.push_back(
-                fmt::format("{}:{}", conn.client_name_, conn.port_name_));
+                std::format("{}:{}", conn.client_name_, conn.port_name_));
           }
         }
         if (!conn_arr.empty()) {
@@ -362,6 +362,9 @@ public:
   void deserialize_connections(char *filename, bool remove_prev = true) {
     using namespace std::chrono_literals;
 
+    constexpr int max_retries = 100;
+    constexpr auto retry_delay = 10ms;
+
     toml::table tbl;
     try {
       tbl = toml::parse_file(filename);
@@ -378,25 +381,33 @@ public:
       for (auto port : *ports) {
         auto port_name = std::string(port.first);
         auto connections = port.second.as_array();
-        auto send_addr = fmt::format("{}:{}", client_name, port_name);
+        auto send_addr = std::format("{}:{}", client_name, port_name);
         connections->for_each([&](toml::value<std::string> &elem) {
           subscribe(send_addr.c_str(), elem->c_str());
 
           // allow alsa seq to catch up in between subscriptions
-          // std::this_thread::sleep_for(0.5s);
           snd_seq_port_subscribe_t *subs;
           snd_seq_port_subscribe_alloca(&subs);
           auto connected = false;
-          while (connected == false) {
+          for (int i = 0; i < max_retries; ++i) {
             if (init_subscription(subs, send_addr.c_str(), elem->c_str()) !=
                 0) {
               std::cerr << "init subscription failed during "
                            "deserialize connection check\n";
+              break;
             }
 
             if (snd_seq_get_port_subscription(seq, subs) == 0) {
               connected = true;
+              break;
             }
+
+            std::this_thread::sleep_for(retry_delay);
+          }
+
+          if (!connected) {
+            std::cerr << "could not restore connection '" << send_addr
+                      << "' -> '" << elem->c_str() << "'\n";
           }
         });
       }
@@ -614,7 +625,8 @@ private:
    * search all ports
    */
   void print_port(Port *port) {
-    fmt::print("  {:<3} '{}'\n", port->get_index(), port->get_name());
+    std::cout << std::format("  {:<3} '{}'\n", port->get_index(),
+                             port->get_name());
   }
 
   void print_port_and_subs(Port *port) {
