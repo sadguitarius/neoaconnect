@@ -323,8 +323,15 @@ public:
     }
   }
 
-  void remove_all_connections() {
+  void remove_all_connections(bool include_system = false) {
     for (auto client : *get_clients()) {
+      // The system client's ports are infrastructure rather than patch state:
+      // dropping the announce port's subscribers blinds every daemon watching
+      // it for hotplug, and nothing re-establishes those for them. -X opts
+      // back into aconnect's behavior of removing them too.
+      if (!include_system && client->get_index() == SND_SEQ_CLIENT_SYSTEM) {
+        continue;
+      }
       for (auto port : *client->get_ports()) {
         remove_connection(port);
       }
@@ -696,13 +703,17 @@ static void usage(void) {
          "     -o,--output         list output (writable ports)\n"
          "     -l,--list           list current connections of each port\n"
          "     -p,--ports          list only port names \n"
-         "                         (for shell completion scripts)"
+         "                         (for shell completion scripts)\n"
          " * Remove all exported connections\n"
-         "     -x,--removeall\n"
+         "     -x,--removeall      leave the system client's connections alone\n"
+         "                         (so daemons can watch its announce port)\n"
+         "     -X,--removeall-force\n"
+         "                         include system client's connections\n"
+         "                         (original aconnect -x)\n"
          " * Serialization of connections in TOML format\n"
-         "    -s,--serialize      read current connections to terminal\n"
+         "    -s,--serialize       read current connections to terminal\n"
          "    -S FILENAME,\n"
-         "      --deserialize    repopulate connections from TOML file\n";
+         "      --deserialize      repopulate connections from TOML file\n";
 }
 
 /*
@@ -714,8 +725,9 @@ static const struct option long_option[] = {
     {"output", 0, NULL, 'o'},      {"real", 1, NULL, 'r'},
     {"tick", 1, NULL, 't'},        {"exclusive", 0, NULL, 'e'},
     {"list", 0, NULL, 'l'},        {"ports", 0, NULL, 'p'},
-    {"removeall", 0, NULL, 'x'},   {"serialize", 0, NULL, 's'},
-    {"deserialize", 0, NULL, 'S'}, {NULL, 0, NULL, 0},
+    {"removeall", 0, NULL, 'x'},   {"removeall-force", 0, NULL, 'X'},
+    {"serialize", 0, NULL, 's'},   {"deserialize", 0, NULL, 'S'},
+    {NULL, 0, NULL, 0},
 };
 
 int main(int argc, char **argv) {
@@ -735,9 +747,10 @@ int main(int argc, char **argv) {
   int list_perm = 0;
   int list_subs = 0;
   int queue = 0, convert_time = 0, convert_real = 0, exclusive = 0;
+  bool remove_system = false;
 
   // CHANGE TO CLASS METHODS
-  while ((c = getopt_long(argc, argv, "dior:t:elpsSx", long_option, NULL)) !=
+  while ((c = getopt_long(argc, argv, "dior:t:elpsSxX", long_option, NULL)) !=
          -1) {
     switch (c) {
     case 'd':
@@ -781,6 +794,10 @@ int main(int argc, char **argv) {
     case 'x':
       command = commands::remove_all;
       break;
+    case 'X':
+      command = commands::remove_all;
+      remove_system = true;
+      break;
     default:
       usage();
       exit(1);
@@ -795,7 +812,7 @@ int main(int argc, char **argv) {
     seq->print_all_ports(list_perm, list_subs);
     return 0;
   case commands::remove_all:
-    seq->remove_all_connections();
+    seq->remove_all_connections(remove_system);
     return 0;
   case commands::serialize:
     seq->serialize_connections();
